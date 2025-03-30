@@ -1,0 +1,25 @@
+{
+  "files": [],
+  "references": [
+    { "path": "./tsconfig.app.json" },
+    { "path": "./tsconfig.node.json" }
+  ],
+  "compilerOptions": {
+    "target": "ESNext", // 최신 JavaScript 기능을 타겟으로 설정
+    "lib": ["DOM", "DOM.Iterable", "ESNext"], // 브라우저 및 최신 JS 기능 지원
+    "module": "ESNext", // ES 모듈 사용
+    "moduleResolution": "Node", // Node.js 모듈 해석 방식
+    "strict": true, // 엄격한 타입 검사 활성화
+    "baseUrl": ".", // 기본 경로 설정
+    "paths": {
+      "@/*": ["./src/*"] // 절대 경로 별칭 설정
+    },
+    "types": ["./src/types/index.d.ts"], // 사용자 정의 타입 파일 포함
+    "jsx": "react-jsx", // React 17+ JSX 변환 사용
+    "esModuleInterop": true, // CommonJS 모듈 호환성 활성화
+    "skipLibCheck": true, // 라이브러리 타입 검사 건너뜀
+    "forceConsistentCasingInFileNames": true // 파일 이름 대소문자 일관성 강제
+  },
+  "include": ["src"], // 포함할 파일/디렉토리
+  "exclude": ["node_modules", "dist"] // 제외할 파일/디렉토리
+}
