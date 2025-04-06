@@ -46,7 +46,7 @@ import {
   SidebarFooter,
   SidebarSeparator,
 } from "../../components/ui/sidebar";
-import { useAuth } from "../../contexts/useAuth";
+// import { useAuth } from "../../contexts/useAuth";
 
 // Mock user data
 const mockUser = {
@@ -959,7 +959,9 @@ const SettingsComponent = () => {
 // Main ProfilePage component
 const ProfilePage = () => {
   const [activeSection, setActiveSection] = useState("dashboard");
-  const { user, signOut } = useAuth();
+  // const { user, signOut } = useAuth();
+  const signOut = () => {};
+  const user = { username: "test" };
   const navigate = useNavigate();
 
   const handleSignOut = () => {

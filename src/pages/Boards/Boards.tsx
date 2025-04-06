@@ -26,7 +26,7 @@ import {
 import { Badge } from "../../components/ui/badge";
 import { Input } from "../../components/ui/input";
 import { Tabs, TabsList, TabsTrigger } from "../../components/ui/tabs";
-import { useAuth } from "../../contexts/useAuth";
+// import { useAuth } from "../../contexts/useAuth";
 import { Link } from "react-router-dom";
 
 // Mock data for boards
@@ -148,7 +148,8 @@ const BoardPage = () => {
   const [sortOption, setSortOption] = useState("newest");
   const [searchQuery, setSearchQuery] = useState("");
   const [filteredBoards, setFilteredBoards] = useState(mockBoards);
-  const { user } = useAuth();
+  // const { user } = useAuth();
+  const user = { username: "test" };
   const isLoggedIn = !!user;
 
   // Filter and sort boards based on selected options

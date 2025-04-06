@@ -35,8 +35,12 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "../../components/ui/dropdown-menu";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "../../components/ui/tabs";
-import { useAuth } from "../../contexts/useAuth";
+import {
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger,
+} from "../../components/ui/tabs";
 // import { useToast } from "@/hooks/use-toast";
 import { toast } from "sonner";
 
@@ -194,7 +198,8 @@ const calculateTimeRemaining = (endDateString: string) => {
 const VoteDetailPage = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const { user } = useAuth();
+  // const { user } = useAuth();
+  const user = { username: "test", userId: "1" };
   // const { toast } = useToast();
   const isLoggedIn = !!user;
 

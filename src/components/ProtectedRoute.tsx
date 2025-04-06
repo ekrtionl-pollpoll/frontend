@@ -1,10 +1,10 @@
 import { useEffect, type PropsWithChildren } from "react";
-import { useAuth } from "../contexts/useAuth";
 import { useNavigate } from "react-router-dom";
 
-type ProtectedRouteProps = PropsWithChildren
+type ProtectedRouteProps = PropsWithChildren;
 const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
-  const { user } = useAuth();
+  // const { user } = useAuth();
+  const user = { username: "test" };
   const navigate = useNavigate();
   const isLoggedIn = !!user;
 

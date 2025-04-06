@@ -1,5 +1,4 @@
-import { api } from "../contexts/AuthContext";
-
+import { api } from "../config/apiClient";
 // 토큰 갱신 함수
 export const refreshTokens = async (): Promise<boolean> => {
   try {

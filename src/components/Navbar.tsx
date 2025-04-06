@@ -1,14 +1,16 @@
 import { Link } from "react-router-dom";
 import { Button } from "./ui/button";
-import { useAuth } from "../contexts/useAuth";
+// import { useAuth } from "../contexts/useAuth";
 import { useState } from "react";
 import { LogIn, LogOut, Menu, X } from "lucide-react";
 import AuthButtons from "./AuthButton";
 
 const Navbar = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const { user, signOut } = useAuth();
-  const isLoggedIn = !!user;
+  // const { user, signOut } = useAuth();
+  const signOut = () => {};
+  const user = { username: "test" };
+  const isLoggedIn = false;
 
   const isActive = (path: string) => {
     if (path === "/" && location.pathname === "/") {

@@ -23,7 +23,6 @@ import {
 } from "../components/ui/card";
 import { Badge } from "../components/ui/badge";
 import { Input } from "../components/ui/input";
-import { useAuth } from "../contexts/useAuth";
 
 // Mock data for trending votes
 const trendingVotes = [
@@ -168,7 +167,8 @@ const getLeadingOption = (options: (typeof trendingVotes)[0]["options"]) => {
 };
 
 const MainPage = () => {
-  const { user } = useAuth();
+  // const { user } = useAuth();
+  const user = { username: "test" };
   const isLoggedIn = !!user;
   const [searchQuery, setSearchQuery] = useState("");
 

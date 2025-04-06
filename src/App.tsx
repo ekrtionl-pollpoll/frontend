@@ -5,7 +5,6 @@ import SignInPage from "./pages/SignIn";
 import AuthLayout from "./layouts/AuthLayout";
 import MainLayout from "./layouts/MainLayout";
 import ErrorPage from "./pages/ErrorPage";
-import { AuthProvider } from "./contexts/AuthContext";
 import ProtectedRoute from "./components/ProtectedRoute";
 import ProfilePage from "./pages/Profiles/Profile";
 import VoteLayout from "./layouts/VoteLayout";
@@ -18,7 +17,6 @@ import BoardDetailPage from "./pages/Boards/BoardDetail";
 import CustomProfile from "./pages/CustomProfile";
 import BoardCreatePage from "./pages/Boards/BoardCreate";
 import VoteCreatePage from "./pages/Votes/VoteCreate";
-import React from "react";
 
 function App() {
   const router = createBrowserRouter([
@@ -105,11 +103,7 @@ function App() {
     },
   ]);
 
-  return (
-    <AuthProvider>
-      <RouterProvider router={router} />
-    </AuthProvider>
-  );
+  return <RouterProvider router={router} />;
 }
 
 export default App;

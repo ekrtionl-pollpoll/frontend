@@ -32,7 +32,6 @@ import {
   CardHeader,
   CardTitle,
 } from "../../components/ui/card";
-import { useAuth } from "../../contexts/useAuth";
 
 // Mock data for a single board
 const mockBoardDetail = {
@@ -163,7 +162,8 @@ const formatRelativeTime = (dateString: string) => {
 const BoardDetailPage = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const { user } = useAuth();
+  // const { user } = useAuth();
+  const user = { username: "test", userId: "1" };
   const isLoggedIn = !!user;
   const isAuthor = isLoggedIn && user.userId === mockBoardDetail.author.id;
 

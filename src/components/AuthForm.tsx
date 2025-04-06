@@ -1,11 +1,13 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import { Toaster, toast } from "sonner";
+import { toast } from "sonner";
 import { Button } from "./ui/button";
 import { formSchema, TFormSchema } from "../lib/types";
-import { useAuth } from "../contexts/useAuth";
 import { useState } from "react";
+import { api } from "@/config/apiClient";
+import { useAuthStore } from "@/store/authStore";
+import { useUser } from "@/hooks/useUser";
 
 interface AuthFormProps {
   type: "sign-in" | "sign-up";
@@ -22,61 +24,126 @@ const AuthForm = ({ type }: AuthFormProps) => {
     register,
     handleSubmit,
     formState: { errors, isSubmitting },
-    // setError,
+    watch,
   } = useForm<TFormSchema>({ resolver: zodResolver(formSchema(type)) });
-  const { signIn } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
   const locationState = location.state as LocationState;
   const from = locationState?.from?.pathname || "/";
-
+  const setIsAuthenticated = useAuthStore((state) => state.setIsAuthenticated);
+  const { signInMutation, signUpMutation } = useUser();
   const isSignIn = type === "sign-in";
-  const [showVerification, setShowVerification] = useState(false);
   const [emailMessage, setEmailMessage] = useState("");
   const [usernameMessage, setUsernameMessage] = useState("");
-  const [verificationMessage, setVerificationMessage] = useState("");
 
-  const checkEmailDuplicate = async (email: string) => {
-    if (!isSignIn) {
-      // API 호출하여 이메일 중복 체크
-      // const response = await fetch("/api/check-email", { method: "POST", body: JSON.stringify({ email }) });
-      // if (!response.ok) setError("email", { message: "이미 사용 중인 이메일입니다." });
-      setEmailMessage("사용 가능한 이메일입니다.");
-      setShowVerification(true);
+  // State 추가됨
+  // Add state to track verification status
+  const [isUsernameVerified, setIsUsernameVerified] = useState(false);
+  const [isEmailVerified, setIsEmailVerified] = useState(false);
+
+  // Add state to track if fields are in edit mode
+  const [isUsernameEditable, setIsUsernameEditable] = useState(true);
+  const [isEmailEditable, setIsEmailEditable] = useState(true);
+
+  const checkEmailDuplicate = async () => {
+    const email = watch("email"); // 현재 입력된 이메일 가져오기
+    if (!isSignIn && email) {
+      try {
+        const response = await api.post("/auth/check/email", { email });
+
+        setEmailMessage("사용 가능한 이메일입니다.");
+        setIsEmailVerified(true);
+        setIsEmailEditable(false);
+      } catch (error: any) {
+        if (error.response?.status === 409) {
+          setEmailMessage("이미 사용 중인 이메일입니다.");
+          setIsEmailVerified(false);
+        } else {
+          console.error(error);
+          setEmailMessage("서버 오류가 발생했습니다.");
+          setIsEmailVerified(false);
+        }
+      }
     }
   };
 
-  const checkUsernameDuplicate = async (username: string) => {
-    if (!isSignIn) {
-      // API 호출하여 유저네임 중복 체크
-      // const response = await fetch("/api/check-username", { method: "POST", body: JSON.stringify({ username }) });
-      setUsernameMessage("사용 가능한 유저네임입니다.");
+  const checkUsernameDuplicate = async () => {
+    const username = watch("username"); // 현재 입력된 유저네임 가져오기
+    if (!isSignIn && username) {
+      try {
+        const response = await api.post("/auth/check/username", { username });
+
+        setUsernameMessage("사용 가능한 유저네임입니다.");
+        setIsUsernameVerified(true);
+        setIsUsernameEditable(false);
+      } catch (error: any) {
+        if (error.response?.status === 409) {
+          setUsernameMessage("이미 사용 중인 유저네임입니다.");
+          setIsUsernameVerified(false);
+        } else {
+          console.error(error);
+          setUsernameMessage("서버 오류가 발생했습니다.");
+          setIsUsernameVerified(false);
+        }
+      }
     }
   };
 
-  const handleEmailVerification = async () => {
-    // 이메일 인증 요청 API 호출
-    // const response = await fetch("/api/send-verification", { method: "POST", body: JSON.stringify({ email }) });
-    setVerificationMessage("이메일로 인증 코드가 전송되었습니다.");
+  // Function to toggle edit mode for username
+  const toggleUsernameEdit = () => {
+    setIsUsernameEditable(true);
+    setIsUsernameVerified(false);
+    setUsernameMessage("");
+  };
+
+  // Function to toggle edit mode for email
+  const toggleEmailEdit = () => {
+    setIsEmailEditable(true);
+    setIsEmailVerified(false);
+    setEmailMessage("");
+  };
+
+  const isSignUpFormValid = () => {
+    if (isSignIn) return true;
+
+    return (
+      isUsernameVerified &&
+      isEmailVerified &&
+      !!watch("password") &&
+      !!watch("confirmPassword") &&
+      !errors.password &&
+      !errors.confirmPassword
+    );
   };
 
   const onSubmit = async (data: TFormSchema) => {
     if (isSignIn) {
       try {
-        const response = await signIn(data.email, data.password);
-        console.log(response);
+        console.log("로그인 데이터:", data);
+        const response = await signInMutation.mutateAsync(data);
+        console.log("로그인 결과:", response);
         toast.success("로그인 성공");
         navigate(from, { replace: true });
-      } catch (error) {
-        toast.error("로그인 실패");
-        console.error(error);
+      } catch (error: any) {
+        console.error("로그인 에러 상세:", error);
+        if (error.status === 401) {
+          toast.error("이메일 또는 비밀번호가 일치하지 않습니다.");
+        } else if (error.status === 404) {
+          toast.error("존재하지 않는 계정입니다.");
+        } else {
+          toast.error(`로그인에 실패했습니다. (에러 코드: ${error.status})`);
+        }
       }
     } else {
       try {
-        // TODO: 회원가입 로직직
-        // const response = await signUp(data);
+        console.log("회원가입 데이터:", data);
+        const result = await signUpMutation.mutateAsync(data);
+        console.log("회원가입 결과:", result);
+        toast.success("회원가입이 완료되었습니다. 로그인해주세요.");
+        navigate("/signin", { replace: true });
       } catch (error) {
-        console.error(error);
+        console.error("회원가입 에러:", error);
+        toast.error("회원가입에 실패했습니다. 입력 정보를 확인해주세요.");
       }
     }
   };
@@ -110,22 +177,32 @@ const AuthForm = ({ type }: AuthFormProps) => {
                   type='text'
                   placeholder='Your name'
                   className='input flex-1'
+                  disabled={!isUsernameEditable && !isSignIn}
                 />
-                {/* test */}
-                <Button
-                  type='button'
-                  className='verify_btn whitespace-nowrap'
-                  onClick={() => checkUsernameDuplicate("username")}
-                >
-                  Check Username
-                </Button>
+                {!isSignIn &&
+                  (isUsernameEditable ? (
+                    <Button
+                      type='button'
+                      className='verify_btn whitespace-nowrap'
+                      onClick={checkUsernameDuplicate}
+                    >
+                      Check Username
+                    </Button>
+                  ) : (
+                    <Button
+                      type='button'
+                      className='verify_btn whitespace-nowrap'
+                      onClick={toggleUsernameEdit}
+                    >
+                      Edit
+                    </Button>
+                  ))}
               </div>
               {usernameMessage && (
                 <p className='text-green-500 text-[12px] mt-1'>
                   {usernameMessage}
                 </p>
               )}
-              {/* test */}
               {errors.username && (
                 <p className='text-red-300 text-[12px] mt-1'>
                   {errors.username.message}
@@ -142,17 +219,26 @@ const AuthForm = ({ type }: AuthFormProps) => {
                 type='email'
                 placeholder='Your email address'
                 className='input flex-1'
+                disabled={!isEmailEditable && !isSignIn}
               />
-              {/* test */}
-              {!isSignIn && (
-                <Button
-                  type='button'
-                  className='verify_btn whitespace-nowrap'
-                  onClick={() => checkEmailDuplicate("email")}
-                >
-                  Check Email
-                </Button>
-              )}
+              {!isSignIn &&
+                (isEmailEditable ? (
+                  <Button
+                    type='button'
+                    className='verify_btn whitespace-nowrap'
+                    onClick={checkEmailDuplicate}
+                  >
+                    Check Email
+                  </Button>
+                ) : (
+                  <Button
+                    type='button'
+                    className='verify_btn whitespace-nowrap'
+                    onClick={toggleEmailEdit}
+                  >
+                    Edit
+                  </Button>
+                ))}
             </div>
             {emailMessage && (
               <p className='text-green-500 text-[12px] mt-1'>{emailMessage}</p>
@@ -164,31 +250,7 @@ const AuthForm = ({ type }: AuthFormProps) => {
               </p>
             )}
           </div>
-          {showVerification && !isSignIn && (
-            <div className='flex flex-col gap-1 sm:gap-2'>
-              <label htmlFor='verification'>Email Verification Code</label>
-              <div className='flex gap-2'>
-                <input
-                  id='verification'
-                  type='text'
-                  placeholder='Enter code'
-                  className='input flex-1'
-                />
-                <Button
-                  type='button'
-                  className='verify_btn whitespace-nowrap'
-                  onClick={handleEmailVerification}
-                >
-                  Send Verification Code
-                </Button>
-              </div>
-              {verificationMessage && (
-                <p className='text-green-500 text-[12px] mt-1'>
-                  {verificationMessage}
-                </p>
-              )}
-            </div>
-          )}
+
           <div className='flex flex-col gap-1 sm:gap-2'>
             <label htmlFor='password'>Password</label>
             <input
@@ -224,10 +286,34 @@ const AuthForm = ({ type }: AuthFormProps) => {
           <Button
             className='btn w-full mt-6'
             type='submit'
-            disabled={isSubmitting}
+            disabled={
+              isSubmitting ||
+              (!isSignIn && !isSignUpFormValid()) ||
+              signInMutation.isPending ||
+              signUpMutation.isPending
+            }
           >
-            {isSignIn ? "Sign in" : "Create an Account"}
+            {signInMutation.isPending || signUpMutation.isPending ? (
+              <div className='flex items-center justify-center'>
+                <div className='w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin mr-2'></div>
+                {isSignIn ? "로그인 중..." : "회원가입 중..."}
+              </div>
+            ) : isSignIn ? (
+              "Sign in"
+            ) : (
+              "Create an Account"
+            )}
           </Button>
+          {isSignIn && (
+            <div className='text-center'>
+              <Link
+                to='/forgot-password'
+                className='text-sm text-user-primary hover:underline'
+              >
+                forgot password?
+              </Link>
+            </div>
+          )}
         </form>
         <p className='text-center text-sm sm:text-base'>
           {isSignIn ? "No account yet?" : "Have an account already?"}
@@ -239,7 +325,6 @@ const AuthForm = ({ type }: AuthFormProps) => {
           </Link>
         </p>
       </div>
-      <Toaster />
     </div>
   );
 };
