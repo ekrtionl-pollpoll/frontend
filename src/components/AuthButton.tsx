@@ -10,6 +10,8 @@ import {
   DropdownMenuTrigger,
 } from "./ui/dropdown-menu";
 import { motion } from "framer-motion"; // You may need to install framer-motion
+import { toast } from "sonner";
+import { useUser } from "@/hooks/useUser";
 
 interface AuthButtonsProps {
   isLoggedIn: boolean;
@@ -22,6 +24,16 @@ const AuthButtons = ({
   signOut,
   username = "User",
 }: AuthButtonsProps) => {
+  const { signOutMutation } = useUser();
+
+  const handleSignOut = () => {
+    signOutMutation.mutate(undefined, {
+      onSuccess: () => {
+        toast.success("로그아웃 되었습니다.");
+      },
+    });
+  };
+
   return (
     <div className='hidden md:block'>
       {isLoggedIn ? (
@@ -81,7 +93,7 @@ const AuthButtons = ({
             </DropdownMenuItem>
             <DropdownMenuSeparator />
             <DropdownMenuItem
-              onClick={signOut}
+              onClick={handleSignOut}
               className='text-red-500 focus:text-red-500 cursor-pointer'
             >
               <LogOut className='mr-2 h-4 w-4' />

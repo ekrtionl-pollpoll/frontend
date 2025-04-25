@@ -1,21 +1,20 @@
 import { useEffect, type PropsWithChildren } from "react";
 import { useNavigate } from "react-router-dom";
+import { useAuthStore } from "@/store/authStore";
 
 type ProtectedRouteProps = PropsWithChildren;
-const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
-  // const { user } = useAuth();
-  const user = { username: "test" };
-  const navigate = useNavigate();
-  const isLoggedIn = !!user;
 
-  console.log(user);
+const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
+  const navigate = useNavigate();
+  const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
+
   useEffect(() => {
-    if (!isLoggedIn) {
+    if (!isAuthenticated) {
       navigate("/signin", { replace: true });
     }
-  }, [isLoggedIn, navigate]);
+  }, [isAuthenticated, navigate]);
 
-  return children;
+  return isAuthenticated ? children : null;
 };
 
 export default ProtectedRoute;

@@ -4,13 +4,19 @@ import { Button } from "./ui/button";
 import { useState } from "react";
 import { LogIn, LogOut, Menu, X } from "lucide-react";
 import AuthButtons from "./AuthButton";
+import { useAuthStore } from "@/store/authStore";
+import { useUser } from "@/hooks/useUser";
 
 const Navbar = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  // const { user, signOut } = useAuth();
-  const signOut = () => {};
+  const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
+  const { signOutMutation } = useUser();
   const user = { username: "test" };
-  const isLoggedIn = false;
+  const isLoggedIn = isAuthenticated;
+
+  const signOut = () => {
+    signOutMutation.mutate();
+  };
 
   const isActive = (path: string) => {
     if (path === "/" && location.pathname === "/") {
@@ -140,14 +146,22 @@ const Navbar = () => {
               </Button>
             ) : (
               <Link
-                to='/signin'
+                // to='/signin'
+                to={isAuthenticated ? "" : "/signin"}
                 className='block w-full'
                 onClick={() => setIsMenuOpen(false)}
               >
-                <Button className='w-full justify-center bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 group transition-all duration-300'>
-                  <LogIn className='mr-2 h-4 w-4 group-hover:-translate-x-1 transition-transform duration-300' />
-                  Sign in
-                </Button>
+                {isAuthenticated ? (
+                  <Button className='w-full justify-center bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 group transition-all duration-300'>
+                    <LogOut className='mr-2 h-4 w-4 group-hover:-translate-x-1 transition-transform duration-300' />
+                    Sign Out
+                  </Button>
+                ) : (
+                  <Button className='w-full justify-center bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 group transition-all duration-300'>
+                    <LogIn className='mr-2 h-4 w-4 group-hover:-translate-x-1 transition-transform duration-300' />
+                    Sign in
+                  </Button>
+                )}
               </Link>
             )}
           </div>

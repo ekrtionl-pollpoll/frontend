@@ -4,7 +4,7 @@ import { Link, useLocation, useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { Button } from "./ui/button";
 import { formSchema, TFormSchema } from "../lib/types";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { api } from "@/config/apiClient";
 import { useAuthStore } from "@/store/authStore";
 import { useUser } from "@/hooks/useUser";
@@ -30,7 +30,7 @@ const AuthForm = ({ type }: AuthFormProps) => {
   const location = useLocation();
   const locationState = location.state as LocationState;
   const from = locationState?.from?.pathname || "/";
-  const setIsAuthenticated = useAuthStore((state) => state.setIsAuthenticated);
+  const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
   const { signInMutation, signUpMutation } = useUser();
   const isSignIn = type === "sign-in";
   const [emailMessage, setEmailMessage] = useState("");
@@ -44,6 +44,13 @@ const AuthForm = ({ type }: AuthFormProps) => {
   // Add state to track if fields are in edit mode
   const [isUsernameEditable, setIsUsernameEditable] = useState(true);
   const [isEmailEditable, setIsEmailEditable] = useState(true);
+
+  useEffect(() => {
+    console.log("isAuthenticated", isAuthenticated);
+    if (isAuthenticated) {
+      navigate(from, { replace: true });
+    }
+  }, [isAuthenticated, navigate, from]);
 
   const checkEmailDuplicate = async () => {
     const email = watch("email"); // 현재 입력된 이메일 가져오기
@@ -119,7 +126,6 @@ const AuthForm = ({ type }: AuthFormProps) => {
   const onSubmit = async (data: TFormSchema) => {
     if (isSignIn) {
       try {
-        console.log("로그인 데이터:", data);
         const response = await signInMutation.mutateAsync(data);
         console.log("로그인 결과:", response);
         toast.success("로그인 성공");
